@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ansh</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080910;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.07);
+    --text: #dde0ea;
+    --muted: rgba(255,255,255,0.3);
+    --accent: #e85d2f;
+    --accent-glow: rgba(232,93,47,0.3);
+    --green: #4ade80;
+    --green-glow: rgba(74,222,128,0.25);
+    --blue: #60a5fa;
+    --blue-glow: rgba(96,165,250,0.25);
+    --purple: #c084fc;
+    --purple-glow: rgba(192,132,252,0.25);
+    --red: #f87171;
+    --red-glow: rgba(248,113,113,0.25);
+    --gray: #6b7280;
+    --gray-glow: rgba(107,114,128,0.2);
+    --ansh: #f59e0b;
+    --ansh-glow: rgba(245,158,11,0.3);
+    --shawn: #38bdf8;
+    --shawn-glow: rgba(56,189,248,0.3);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Raleway', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 10% 0%, rgba(232,93,47,0.06) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 50% at 90% 100%, rgba(96,165,250,0.05) 0%, transparent 70%);
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 200px;
+  }
+
+  /* ─── PAGES ─── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .wrap { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ─── NAV BAR ─── */
+  .topnav {
+    position: relative; z-index: 10;
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    max-width: 100%;
+  }
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px; letter-spacing: 0.1em; color: var(--accent);
+    margin-right: 8px; cursor: pointer; flex-shrink: 0;
+  }
+  .nav-logo:hover { opacity: 0.8; }
+  .nav-sep { color: var(--border); font-size: 20px; }
+  .nav-btn {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px; letter-spacing: 0.12em;
+    padding: 6px 18px; border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted); cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .nav-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+  .nav-btn.active-ansh { border-color: var(--ansh); color: var(--ansh); background: rgba(245,158,11,0.08); box-shadow: 0 0 12px rgba(245,158,11,0.15); }
+  .nav-btn.active-shawn { border-color: var(--shawn); color: var(--shawn); background: rgba(56,189,248,0.08); box-shadow: 0 0 12px rgba(56,189,248,0.15); }
+
+  /* ─── HOME PAGE ─── */
+  .home-wrap {
+    position: relative; z-index: 1;
+    max-width: 860px; margin: 0 auto; padding: 60px 24px 80px;
+    display: flex; flex-direction: column; align-items: center; text-align: center;
+  }
+  .home-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(52px, 12vw, 96px);
+    letter-spacing: 0.06em; line-height: 1; color: #fff;
+    text-shadow: 0 0 80px rgba(232,93,47,0.3);
+    margin-bottom: 12px;
+  }
+  .home-sub {
+    font-size: 12px; letter-spacing: 0.22em; color: var(--muted);
+    text-transform: uppercase; margin-bottom: 60px;
+  }
+  .home-cards {
+    display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; width: 100%;
+  }
+  .home-card {
+    flex: 1; min-width: 220px; max-width: 320px;
+    padding: 32px 28px; border-radius: 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    text-align: left; position: relative; overflow: hidden;
+  }
+  .home-card::before {
+    content: ''; position: absolute; inset: 0; opacity: 0;
+    transition: opacity 0.25s;
+    border-radius: 16px;
+  }
+  .home-card.ansh-card::before { background: radial-gradient(ellipse at top left, rgba(245,158,11,0.12), transparent 70%); }
+  .home-card.shawn-card::before { background: radial-gradient(ellipse at top left, rgba(56,189,248,0.12), transparent 70%); }
+  .home-card:hover::before { opacity: 1; }
+  .home-card.ansh-card:hover { border-color: var(--ansh); box-shadow: 0 0 30px rgba(245,158,11,0.15); transform: translateY(-4px); }
+  .home-card.shawn-card:hover { border-color: var(--shawn); box-shadow: 0 0 30px rgba(56,189,248,0.15); transform: translateY(-4px); }
+  .card-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Bebas Neue', sans-serif; font-size: 22px;
+    margin-bottom: 16px; flex-shrink: 0;
+  }
+  .card-avatar.ansh { background: rgba(245,158,11,0.12); border: 1.5px solid var(--ansh); color: var(--ansh); }
+  .card-avatar.shawn { background: rgba(56,189,248,0.12); border: 1.5px solid var(--shawn); color: var(--shawn); }
+  .card-name {
+    font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+    letter-spacing: 0.08em; color: #fff; margin-bottom: 6px;
+  }
+  .card-desc { font-size: 12px; color: var(--muted); line-height: 1.6; margin-bottom: 20px; }
+  .card-stats { display: flex; gap: 16px; flex-wrap: wrap; }
+  .card-stat { text-align: center; }
+  .card-stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 22px; display: block; color: #fff; }
+  .card-stat-label { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; }
+  .card-arrow { position: absolute; bottom: 22px; right: 22px; font-size: 20px; opacity: 0.2; transition: opacity 0.2s, transform 0.2s; }
+  .home-card:hover .card-arrow { opacity: 0.7; transform: translateX(4px); }
+
+  /* ─── HEADER ─── */
+  header {
+    padding: 48px 0 32px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+  .header-top { display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap; margin-bottom: 18px; }
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(42px, 8vw, 72px);
+    letter-spacing: 0.06em; line-height: 1; color: #fff;
+    text-shadow: 0 0 60px rgba(232,93,47,0.25);
+  }
+  h1 .user-accent { display: block; font-size: clamp(16px,3vw,22px); letter-spacing: 0.2em; margin-bottom: 4px; }
+  h1 .user-accent.ansh-color { color: var(--ansh); text-shadow: 0 0 20px rgba(245,158,11,0.4); }
+  h1 .user-accent.shawn-color { color: var(--shawn); text-shadow: 0 0 20px rgba(56,189,248,0.4); }
+  .header-stats { display: flex; gap: 24px; padding-bottom: 6px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; color: #fff; display: block; }
+  .stat-label { font-size: 10px; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; }
+  .progress-track { height: 2px; background: rgba(255,255,255,0.06); border-radius: 2px; margin-bottom: 22px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), #f59e0b); transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+  /* ─── CONTROLS ─── */
+  .controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .search-wrap { position: relative; flex: 1; min-width: 160px; max-width: 260px; }
+  .search-wrap svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); opacity: 0.35; pointer-events: none; }
+  input[type=text], select {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text); font-family: 'Raleway', sans-serif;
+    font-size: 13px; padding: 8px 12px; border-radius: 8px;
+    outline: none; transition: border-color 0.2s; width: 100%;
+  }
+  .search-wrap input { padding-left: 34px; }
+  input[type=text]:focus, select:focus { border-color: rgba(232,93,47,0.5); }
+  select { width: auto; cursor: pointer; background: var(--surface); }
+  select option { background: #111; }
+
+  .btn {
+    font-family: 'Bebas Neue', sans-serif; letter-spacing: 0.12em; font-size: 14px;
+    padding: 8px 20px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--muted); cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn:hover { border-color: rgba(232,93,47,0.4); color: var(--accent); }
+  .btn-primary { border-color: rgba(232,93,47,0.5); color: var(--accent); background: rgba(232,93,47,0.08); }
+  .btn-primary:hover { background: rgba(232,93,47,0.18); }
+
+  /* Copy button */
+  .btn-copy {
+    border-color: rgba(255,255,255,0.15); color: var(--muted);
+    background: rgba(255,255,255,0.03);
+  }
+  .btn-copy:hover { border-color: rgba(255,255,255,0.3); color: var(--text); }
+  .btn-copy.copied { border-color: var(--green); color: var(--green); background: rgba(74,222,128,0.08); }
+
+  .add-row { display: flex; gap: 8px; margin-bottom: 16px; animation: slideDown 0.2s ease; }
+  @keyframes slideDown { from { opacity:0; transform: translateY(-8px); } to { opacity:1; transform: translateY(0); } }
+  .add-row input { flex: 1; }
+
+  /* ─── FILTER TABS ─── */
+  .filters { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+  .filter-btn {
+    padding: 5px 14px; border-radius: 20px; border: 1px solid var(--border);
+    background: transparent; color: var(--muted); cursor: pointer;
+    font-family: 'Raleway', sans-serif; font-size: 11px; font-weight: 500;
+    letter-spacing: 0.08em; transition: all 0.2s; text-transform: uppercase;
+  }
+  .filter-btn.active { color: #fff; }
+  .filter-btn[data-f="All"].active { border-color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.08); }
+  .filter-btn[data-f="To Watch"].active { border-color: var(--gray); background: var(--gray-glow); color: #d1d5db; }
+  .filter-btn[data-f="Watching"].active { border-color: var(--accent); background: var(--accent-glow); color: var(--accent); box-shadow: 0 0 14px var(--accent-glow); }
+  .filter-btn[data-f="Completed"].active { border-color: var(--green); background: var(--green-glow); color: var(--green); box-shadow: 0 0 14px var(--green-glow); }
+  .filter-btn[data-f="On Hold"].active { border-color: var(--purple); background: var(--purple-glow); color: var(--purple); box-shadow: 0 0 14px var(--purple-glow); }
+  .filter-btn[data-f="Dropped"].active { border-color: var(--red); background: var(--red-glow); color: var(--red); box-shadow: 0 0 14px var(--red-glow); }
+
+  /* ─── LIST ─── */
+  #list-ansh, #list-shawn { display: flex; flex-direction: column; gap: 2px; }
+  .row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px; border-radius: 8px; border: 1px solid transparent;
+    transition: background 0.15s, border-color 0.15s;
+    animation: fadeIn 0.25s ease both;
+  }
+  .row:hover { background: rgba(255,255,255,0.035); border-color: var(--border); }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+
+  .status-btn {
+    width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid var(--gray); background: transparent; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+    color: var(--gray); transition: all 0.2s;
+  }
+  .status-btn:hover { transform: scale(1.15); }
+  .status-btn[data-s="Watching"] { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 10px var(--accent-glow); }
+  .status-btn[data-s="Completed"] { border-color: var(--green); color: var(--green); box-shadow: 0 0 10px var(--green-glow); }
+  .status-btn[data-s="On Hold"] { border-color: var(--purple); color: var(--purple); box-shadow: 0 0 10px var(--purple-glow); }
+  .status-btn[data-s="Dropped"] { border-color: var(--red); color: var(--red); box-shadow: 0 0 10px var(--red-glow); }
+
+  .row-body { flex: 1; min-width: 0; }
+  .row-title {
+    font-size: 14px; font-weight: 500; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: color 0.2s;
+  }
+  .row-title.done { color: var(--muted); text-decoration: line-through; }
+  .row-progress { font-size: 11px; margin-top: 2px; cursor: pointer; letter-spacing: 0.04em; transition: opacity 0.2s; }
+  .row-progress:hover { opacity: 0.8; }
+  .row-progress[data-s="Watching"] { color: var(--accent); }
+  .row-progress[data-s="Completed"] { color: var(--green); }
+  .row-progress[data-s="On Hold"] { color: var(--purple); }
+  .row-progress[data-s="Dropped"] { color: var(--red); }
+  .row-progress[data-s="To Watch"] { color: var(--muted); }
+
+  .inline-edit { display: flex; gap: 6px; margin-top: 4px; }
+  .inline-edit input { padding: 4px 8px; font-size: 11px; border-radius: 5px; max-width: 220px; }
+  .icon-btn {
+    background: none; border: none; cursor: pointer; font-size: 14px;
+    padding: 0 3px; opacity: 0.25; transition: opacity 0.2s; line-height: 1; color: var(--text);
+  }
+  .icon-btn:hover { opacity: 0.7; }
+
+  .badge {
+    font-size: 9px; padding: 3px 10px; border-radius: 12px;
+    letter-spacing: 0.12em; font-weight: 600; flex-shrink: 0;
+    text-transform: uppercase; border: 1px solid;
+  }
+  .badge[data-s="To Watch"] { border-color: rgba(107,114,128,0.3); color: var(--gray); background: transparent; }
+  .badge[data-s="Watching"] { border-color: rgba(232,93,47,0.35); color: var(--accent); background: rgba(232,93,47,0.08); }
+  .badge[data-s="Completed"] { border-color: rgba(74,222,128,0.35); color: var(--green); background: rgba(74,222,128,0.08); }
+  .badge[data-s="On Hold"] { border-color: rgba(192,132,252,0.35); color: var(--purple); background: rgba(192,132,252,0.08); }
+  .badge[data-s="Dropped"] { border-color: rgba(248,113,113,0.35); color: var(--red); background: rgba(248,113,113,0.08); }
+
+  .empty { text-align: center; padding: 80px 20px; color: var(--muted); letter-spacing: 0.2em; font-size: 12px; text-transform: uppercase; }
+
+  footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+  .legend { display: flex; gap: 18px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); letter-spacing: 0.05em; }
+  .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .reset-btn { font-size: 11px; color: var(--muted); background: none; border: none; cursor: pointer; letter-spacing: 0.1em; font-family: 'Raleway', sans-serif; transition: color 0.2s; }
+  .reset-btn:hover { color: var(--red); }
+
+  /* Copy list modal */
+  .copy-modal {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .copy-modal.open { display: flex; }
+  .copy-box {
+    background: #0e0f14; border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px; max-width: 540px; width: 100%;
+    animation: fadeIn 0.2s ease;
+  }
+  .copy-box h3 { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.1em; color: #fff; margin-bottom: 6px; }
+  .copy-hint { font-size: 11px; color: var(--muted); letter-spacing: 0.08em; margin-bottom: 12px; }
+  .copy-hint strong { color: var(--green); }
+  .copy-textarea {
+    width: 100%; min-height: 200px; max-height: 320px;
+    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
+    color: var(--text); font-size: 12px; font-family: monospace; line-height: 1.7;
+    border-radius: 8px; padding: 12px; outline: none; resize: vertical;
+    overflow-y: auto; cursor: text; user-select: all;
+  }
+  .copy-textarea.selected { border-color: var(--green); box-shadow: 0 0 10px rgba(74,222,128,0.15); }
+  .copy-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: flex-end; }
+
+  /* Import chips */
+  .chip {
+    font-size: 11px; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid rgba(74,222,128,0.4); color: var(--green);
+    background: rgba(74,222,128,0.07); letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .chip.dupe { border-color: rgba(107,114,128,0.3); color: var(--gray); background: transparent; }
+  .chip-x { cursor:pointer; opacity:0.5; font-size:12px; transition:opacity 0.15s; }
+  .chip-x:hover { opacity:1; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: rgba(255,255,255,0.08); border: 1px solid var(--border);
+    color: var(--text); font-size: 12px; letter-spacing: 0.1em;
+    padding: 10px 24px; border-radius: 40px; z-index: 200;
+    opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.green { border-color: var(--green); color: var(--green); }
+
+  @media (max-width: 520px) {
+    .header-stats { gap: 14px; }
+    .badge { display: none; }
+    header { padding: 32px 0 22px; }
+    .home-card { min-width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- COPY MODAL -->
+<!-- IMPORT MODAL -->
+<div class="copy-modal" id="copy-modal">
+  <div class="copy-box">
+    <h3 id="copy-modal-title">Import from MAL / AniList</h3>
+    <div class="copy-hint">Paste anything copied from <strong>MyAnimeList</strong>, <strong>AniList</strong>, a numbered list, or plain titles — one per line. We'll extract the anime titles and add them.</div>
+    <textarea class="copy-textarea" id="copy-textarea" placeholder="Paste your list here…"></textarea>
+    <div id="import-preview" style="display:none;margin-top:10px;">
+      <div id="import-preview-text" style="font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:0.06em;"></div>
+      <div id="import-chips" style="display:flex;flex-wrap:wrap;gap:6px;max-height:120px;overflow-y:auto;"></div>
+    </div>
+    <div class="copy-actions">
+      <button class="btn btn-primary" onclick="runImport()" id="import-confirm-btn" style="display:none">Add to List</button>
+      <button class="btn" id="import-preview-btn" onclick="previewImport()">Preview</button>
+      <button class="btn" onclick="closeCopyModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOP NAV -->
+<nav class="topnav">
+  <div class="nav-logo" onclick="goHome()">AQ</div>
+  <div class="nav-sep">/</div>
+  <button class="nav-btn" id="nav-ansh" onclick="goPage('ansh')">Ansh</button>
+  <button class="nav-btn" id="nav-shawn" onclick="goPage('shawn')">Shawn</button>
+</nav>
+
+<!-- HOME PAGE -->
+<div class="page active" id="page-home">
+  <div class="home-wrap">
+    <div class="home-title">ANIME<br>QUEUE</div>
+    <div class="home-sub">Whose list do you want to view?</div>
+    <div class="home-cards">
+
+      <div class="home-card ansh-card" onclick="goPage('ansh')">
+        <div class="card-avatar ansh">A</div>
+        <div class="card-name">Ansh</div>
+        <div class="card-desc">Your personal anime tracker. Add, update & manage your watchlist.</div>
+        <div class="card-stats" id="home-stats-ansh">
+          <div class="card-stat"><span class="card-stat-num" id="hs-ansh-total">—</span><span class="card-stat-label">Total</span></div>
+          <div class="card-stat"><span class="card-stat-num" style="color:var(--accent)" id="hs-ansh-watching">—</span><span class="card-stat-label">Watching</span></div>
+          <div class="card-stat"><span class="card-stat-num" style="color:var(--green)" id="hs-ansh-done">—</span><span class="card-stat-label">Cleared</span></div>
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+
+      <div class="home-card shawn-card" onclick="goPage('shawn')">
+        <div class="card-avatar shawn">S</div>
+        <div class="card-name">Shawn</div>
+        <div class="card-desc">Your personal anime tracker. Add, update & manage your watchlist.</div>
+        <div class="card-stats" id="home-stats-shawn">
+          <div class="card-stat"><span class="card-stat-num" id="hs-shawn-total">—</span><span class="card-stat-label">Total</span></div>
+          <div class="card-stat"><span class="card-stat-num" style="color:var(--accent)" id="hs-shawn-watching">—</span><span class="card-stat-label">Watching</span></div>
+          <div class="card-stat"><span class="card-stat-num" style="color:var(--green)" id="hs-shawn-done">—</span><span class="card-stat-label">Cleared</span></div>
+        </div>
+        <div class="card-arrow">→</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ANSH PAGE -->
+<div class="page" id="page-ansh">
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>
+          <span class="user-accent ansh-color">ANSH</span>
+          ANIME<br>QUEUE
+        </h1>
+        <div class="header-stats">
+          <div class="stat"><span class="stat-num" id="ansh-cnt-total">0</span><span class="stat-label">Total</span></div>
+          <div class="stat"><span class="stat-num" id="ansh-cnt-watching" style="color:var(--accent)">0</span><span class="stat-label">Watching</span></div>
+          <div class="stat"><span class="stat-num" id="ansh-cnt-completed" style="color:var(--green)">0</span><span class="stat-label">Cleared</span></div>
+          <div class="stat"><span class="stat-num" id="ansh-cnt-hold" style="color:var(--purple)">0</span><span class="stat-label">On Hold</span></div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="ansh-prog"></div></div>
+      <div class="controls">
+        <div class="search-wrap">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="ansh-search" placeholder="Search anime…" oninput="renderPage('ansh')"/>
+        </div>
+        <select id="ansh-sort-sel" onchange="renderPage('ansh')">
+          <option value="default">Default order</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="status">By status</option>
+        </select>
+        <button class="btn btn-primary" onclick="toggleAdd('ansh')">+ ADD</button>
+        <button class="btn btn-copy" id="ansh-copy-btn" onclick="openImportModal('ansh')">⊕ Import List</button>
+      </div>
+      <div id="ansh-add-row" class="add-row" style="display:none">
+        <input type="text" id="ansh-add-input" placeholder="Anime title…"
+          onkeydown="addKeydown(event,'ansh')" oninput="addInput('ansh')"/>
+        <button class="btn btn-primary" onclick="addAnime('ansh')">Add</button>
+        <button class="btn" onclick="toggleAdd('ansh')">Cancel</button>
+      </div>
+      <div class="filters" id="ansh-filters"></div>
+    </header>
+    <div id="list-ansh"></div>
+    <footer>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div>To Watch</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Watching</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Completed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>On Hold</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Dropped</div>
+      </div>
+      <button class="reset-btn" onclick="resetData('ansh')">↺ Reset to defaults</button>
+    </footer>
+  </div>
+</div>
+
+<!-- SHAWN PAGE -->
+<div class="page" id="page-shawn">
+  <div class="wrap">
+    <header>
+      <div class="header-top">
+        <h1>
+          <span class="user-accent shawn-color">SHAWN</span>
+          ANIME<br>QUEUE
+        </h1>
+        <div class="header-stats">
+          <div class="stat"><span class="stat-num" id="shawn-cnt-total">0</span><span class="stat-label">Total</span></div>
+          <div class="stat"><span class="stat-num" id="shawn-cnt-watching" style="color:var(--accent)">0</span><span class="stat-label">Watching</span></div>
+          <div class="stat"><span class="stat-num" id="shawn-cnt-completed" style="color:var(--green)">0</span><span class="stat-label">Cleared</span></div>
+          <div class="stat"><span class="stat-num" id="shawn-cnt-hold" style="color:var(--purple)">0</span><span class="stat-label">On Hold</span></div>
+        </div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="shawn-prog"></div></div>
+      <div class="controls">
+        <div class="search-wrap">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input type="text" id="shawn-search" placeholder="Search anime…" oninput="renderPage('shawn')"/>
+        </div>
+        <select id="shawn-sort-sel" onchange="renderPage('shawn')">
+          <option value="default">Default order</option>
+          <option value="az">A → Z</option>
+          <option value="za">Z → A</option>
+          <option value="status">By status</option>
+        </select>
+        <button class="btn btn-primary" onclick="toggleAdd('shawn')">+ ADD</button>
+        <button class="btn btn-copy" id="shawn-copy-btn" onclick="openImportModal('shawn')">⊕ Import List</button>
+      </div>
+      <div id="shawn-add-row" class="add-row" style="display:none">
+        <input type="text" id="shawn-add-input" placeholder="Anime title…"
+          onkeydown="addKeydown(event,'shawn')" oninput="addInput('shawn')"/>
+        <button class="btn btn-primary" onclick="addAnime('shawn')">Add</button>
+        <button class="btn" onclick="toggleAdd('shawn')">Cancel</button>
+      </div>
+      <div class="filters" id="shawn-filters"></div>
+    </header>
+    <div id="list-shawn"></div>
+    <footer>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gray)"></div>To Watch</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div>Watching</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Completed</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>On Hold</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Dropped</div>
+      </div>
+      <button class="reset-btn" onclick="resetData('shawn')">↺ Reset to defaults</button>
+    </footer>
+  </div>
+</div>
+
+<script>
+const STATUSES = ['To Watch','Watching','Completed','On Hold','Dropped'];
+const STATUS_ICON = { 'To Watch':'◯', 'Watching':'▶', 'Completed':'✓', 'On Hold':'⏸', 'Dropped':'✕' };
+
+const DEFAULTS = [
+  {title:"Lord of the Mysteries (LOTM)",status:"To Watch",progress:""},
+  {title:"Jujutsu Kaisen",status:"Watching",progress:"S2 Ep 20 — 15 mins in"},
+  {title:"Attack on Titan",status:"To Watch",progress:""},
+  {title:"Death Note",status:"To Watch",progress:""},
+  {title:"Classroom of the Elite",status:"To Watch",progress:""},
+  {title:"Monster",status:"To Watch",progress:""},
+  {title:"Hunter x Hunter",status:"To Watch",progress:""},
+  {title:"Tokyo Ghoul",status:"To Watch",progress:""},
+  {title:"Chainsaw Man",status:"To Watch",progress:""},
+  {title:"My Hero Academia",status:"To Watch",progress:""},
+  {title:"Black Clover",status:"To Watch",progress:""},
+  {title:"Vinland Saga",status:"To Watch",progress:""},
+  {title:"Bleach",status:"To Watch",progress:""},
+  {title:"Tokyo Revengers",status:"To Watch",progress:""},
+  {title:"86 — Eighty Six",status:"To Watch",progress:""},
+  {title:"The Eminence in Shadow",status:"To Watch",progress:""},
+  {title:"Witch Hat Atelier",status:"Watching",progress:"Ep 9"},
+  {title:"Demon Slayer",status:"Watching",progress:"Movie next"},
+  {title:"Ossan Newbie Adventure",status:"To Watch",progress:""},
+  {title:"Heavenly Delusion",status:"To Watch",progress:""},
+  {title:"Babylon",status:"To Watch",progress:""},
+  {title:"Sanda",status:"To Watch",progress:""},
+  {title:"Deca-Dence",status:"To Watch",progress:""},
+  {title:"Deadman Wonderland",status:"To Watch",progress:""},
+  {title:"Summertime Rendering",status:"To Watch",progress:""},
+  {title:"Blue Eye Samurai",status:"To Watch",progress:""},
+  {title:"God Eater",status:"To Watch",progress:""},
+  {title:"Btooom!",status:"To Watch",progress:""},
+  {title:"Hellsing Ultimate",status:"To Watch",progress:""},
+  {title:"Inuyashiki",status:"To Watch",progress:""},
+  {title:"Ajin: Demi-Human",status:"To Watch",progress:""},
+  {title:"Dororo",status:"To Watch",progress:""},
+  {title:"Terror in Resonance",status:"To Watch",progress:""},
+  {title:"The Demon Sword Master of Excalibur Academy",status:"To Watch",progress:""},
+  {title:"Wistoria: Wand and Sword",status:"To Watch",progress:""},
+  {title:"The Kingdoms of Ruin",status:"To Watch",progress:""},
+  {title:"The Misfit of Demon King Academy",status:"To Watch",progress:""},
+  {title:"My Status as an Assassin Obviously Exceeds the Hero's",status:"To Watch",progress:""},
+  {title:"Sentenced to Be a Hero",status:"To Watch",progress:""},
+  {title:"High Rise Invasion",status:"To Watch",progress:""},
+  {title:"Hell's Paradise",status:"To Watch",progress:""},
+  {title:"I Got a Cheat Skill in Another World",status:"To Watch",progress:""},
+  {title:"Black Summoner",status:"To Watch",progress:""},
+  {title:"Ragna Crimson",status:"To Watch",progress:""},
+  {title:"Berserk of Gluttony",status:"To Watch",progress:""},
+  {title:"The God of High School",status:"To Watch",progress:""},
+  {title:"Tsukimichi: Moonlit Fantasy",status:"To Watch",progress:""},
+  {title:"Tower of God",status:"To Watch",progress:""},
+  {title:"The King's Avatar",status:"To Watch",progress:""},
+  {title:"The Water Magician",status:"To Watch",progress:""},
+  {title:"Hell Mode",status:"To Watch",progress:""},
+  {title:"Grimgar of Fantasy and Ash",status:"To Watch",progress:""},
+  {title:"No Game No Life",status:"To Watch",progress:""},
+  {title:"Dandadan",status:"To Watch",progress:""},
+  {title:"Wind Breaker",status:"To Watch",progress:""},
+  {title:"Kaiju No. 8",status:"To Watch",progress:""},
+  {title:"Gate",status:"To Watch",progress:""},
+  {title:"Golden Kamuy",status:"To Watch",progress:""},
+  {title:"Sakamoto Days",status:"To Watch",progress:""},
+  {title:"Cyberpunk: Edgerunners",status:"To Watch",progress:""},
+  {title:"To Be Hero X",status:"To Watch",progress:""},
+  {title:"NieR:Automata Ver1.1a",status:"To Watch",progress:""},
+  {title:"Dr. Stone",status:"To Watch",progress:""},
+  {title:"Frieren: Beyond Journey's End",status:"To Watch",progress:""},
+  {title:"Orb: On the Movements of the Earth",status:"To Watch",progress:""},
+  {title:"Phantom: Requiem for the Phantom",status:"To Watch",progress:""},
+  {title:"Radiant",status:"To Watch",progress:""},
+  {title:"Solo Leveling",status:"Completed",progress:""},
+];
+
+function makeId(title){ return title.toLowerCase().replace(/[^a-z0-9]/g,''); }
+function withIds(list){ return list.map(a=>({...a, id: makeId(a.title)+'_'+Math.random().toString(36).slice(2,7)})); }
+
+// ── Per-user state ──────────────────────────────────────
+const state = {
+  ansh:  { anime: [], filter: 'All', editingId: null, showAdd: false },
+  shawn: { anime: [], filter: 'All', editingId: null, showAdd: false },
+};
+
+function load(user){
+  if(user === 'shawn'){
+    // Only load if Shawn has previously saved data (i.e. they've used the app before)
+    try {
+      const saved = localStorage.getItem('animeQueue_shawn');
+      state[user].anime = saved ? JSON.parse(saved) : [];
+    } catch(e){ state[user].anime = []; }
+    return;
+  }
+  try {
+    const saved = localStorage.getItem('animeQueue_'+user);
+    if(saved) state[user].anime = JSON.parse(saved);
+    else state[user].anime = withIds(DEFAULTS);
+  } catch(e){ state[user].anime = withIds(DEFAULTS); }
+}
+function save(user){ localStorage.setItem('animeQueue_'+user, JSON.stringify(state[user].anime)); }
+function resetData(user){
+  if(!confirm('Reset '+user+"'s list? Changes will be lost.")) return;
+  state[user].anime = user === 'shawn' ? [] : withIds(DEFAULTS);
+  save(user); renderPage(user);
+}
+
+// ── Page routing ────────────────────────────────────────
+let currentPage = 'home';
+
+function goHome(){
+  showPage('home');
+  updateHomeStats();
+}
+function goPage(user){
+  showPage(user);
+  renderPage(user);
+  document.getElementById('nav-ansh').className = 'nav-btn' + (user==='ansh'?' active-ansh':'');
+  document.getElementById('nav-shawn').className = 'nav-btn' + (user==='shawn'?' active-shawn':'');
+}
+function showPage(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(name==='home'){
+    document.getElementById('nav-ansh').className = 'nav-btn';
+    document.getElementById('nav-shawn').className = 'nav-btn';
+  }
+  currentPage = name;
+}
+
+function updateHomeStats(){
+  ['ansh','shawn'].forEach(u=>{
+    const a = state[u].anime;
+    document.getElementById('hs-'+u+'-total').textContent = a.length;
+    document.getElementById('hs-'+u+'-watching').textContent = a.filter(x=>x.status==='Watching').length;
+    document.getElementById('hs-'+u+'-done').textContent = a.filter(x=>x.status==='Completed').length;
+  });
+}
+
+// ── Helpers ─────────────────────────────────────────────
+function counts(user){
+  const a = state[user].anime;
+  const c = { All: a.length };
+  STATUSES.forEach(s => c[s] = a.filter(x=>x.status===s).length);
+  return c;
+}
+
+function filtered(user){
+  const { anime, filter } = state[user];
+  const q = document.getElementById(user+'-search').value.toLowerCase().trim();
+  const sortV = document.getElementById(user+'-sort-sel').value;
+  let list = anime.filter(a =>
+    (filter === 'All' || a.status === filter) &&
+    (!q || a.title.toLowerCase().includes(q))
+  );
+  if(sortV === 'az') list = [...list].sort((a,b)=>a.title.localeCompare(b.title));
+  else if(sortV === 'za') list = [...list].sort((a,b)=>b.title.localeCompare(a.title));
+  else if(sortV === 'status'){
+    const order = STATUSES.reduce((o,s,i)=>{o[s]=i;return o;},{});
+    list = [...list].sort((a,b)=>order[a.status]-order[b.status]);
+  }
+  list = [...list.filter(a=>a.status!=='Completed'), ...list.filter(a=>a.status==='Completed')];
+  return list;
+}
+
+// ── Actions ─────────────────────────────────────────────
+function cycleStatus(user, id){
+  const a = state[user].anime.find(x=>x.id===id);
+  if(!a) return;
+  const i = STATUSES.indexOf(a.status);
+  a.status = STATUSES[(i+1)%STATUSES.length];
+  save(user); renderPage(user);
+}
+
+function removeAnime(user, id){
+  state[user].anime = state[user].anime.filter(a=>a.id!==id);
+  save(user); renderPage(user);
+}
+
+function startEdit(user, id){
+  state[user].editingId = id; renderPage(user);
+  setTimeout(()=>{ const el=document.getElementById('ei-'+id); if(el){el.focus();el.select();} },30);
+}
+
+function saveEdit(user, id){
+  const inp = document.getElementById('ei-'+id);
+  if(!inp) return;
+  const a = state[user].anime.find(x=>x.id===id);
+  if(a) a.progress = inp.value.trim();
+  state[user].editingId = null; save(user); renderPage(user);
+}
+
+function editKeydown(e, user, id){
+  if(e.key==='Enter') saveEdit(user, id);
+  if(e.key==='Escape'){ state[user].editingId=null; renderPage(user); }
+}
+
+function toggleAdd(user){
+  state[user].showAdd = !state[user].showAdd;
+  document.getElementById(user+'-add-row').style.display = state[user].showAdd ? 'flex' : 'none';
+  if(state[user].showAdd) setTimeout(()=>document.getElementById(user+'-add-input').focus(),30);
+}
+
+function isSimilar(a, b){
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
+  const na = norm(a), nb = norm(b);
+  if(na === nb) return true;
+  const stop = new Set(['the','a','an','of','in','to','and','no','x','on']);
+  const wordsA = na.split(' ').filter(w=>w.length>1&&!stop.has(w));
+  const wordsB = nb.split(' ').filter(w=>w.length>1&&!stop.has(w));
+  if(!wordsA.length||!wordsB.length) return false;
+  const setB = new Set(wordsB);
+  const overlap = wordsA.filter(w=>setB.has(w)||[...setB].some(bw=>bw.includes(w)||w.includes(bw))).length;
+  return overlap / Math.max(wordsA.length, wordsB.length) >= 0.6;
+}
+
+function addAnime(user){
+  const inp = document.getElementById(user+'-add-input');
+  const title = inp.value.trim();
+  if(!title) return;
+  const dupe = state[user].anime.find(a => isSimilar(a.title, title));
+  if(dupe){
+    showAddWarning(user, `"${dupe.title}" is already in the list.`);
+    inp.style.borderColor='rgba(248,113,113,0.6)';
+    return;
+  }
+  clearAddWarning(user);
+  inp.style.borderColor='';
+  const id = makeId(title) + '_' + Date.now();
+  state[user].anime.push({id, title, status:'To Watch', progress:''});
+  inp.value=''; state[user].showAdd=false;
+  document.getElementById(user+'-add-row').style.display='none';
+  save(user); renderPage(user);
+  showToast('Added to list ✓', true);
+}
+
+function addKeydown(e, user){ if(e.key==='Enter') addAnime(user); if(e.key==='Escape') toggleAdd(user); }
+function addInput(user){ clearAddWarning(user); document.getElementById(user+'-add-input').style.borderColor=''; }
+
+function showAddWarning(user, msg){
+  let w = document.getElementById(user+'-add-warning');
+  if(!w){ w=document.createElement('div'); w.id=user+'-add-warning'; w.style.cssText='font-size:11px;color:var(--red);margin-top:4px;font-family:Raleway,sans-serif;letter-spacing:0.05em;'; document.getElementById(user+'-add-row').after(w); }
+  w.textContent = msg;
+}
+function clearAddWarning(user){ const w=document.getElementById(user+'-add-warning'); if(w) w.textContent=''; }
+
+// ── Copy list feature ────────────────────────────────────
+// ── Import from MAL / AniList ────────────────────────────
+let importUser = null;
+let importTitles = []; // titles to add after preview
+
+function parseAnimeTitles(text) {
+  // Support comma-separated lists as well as newline-separated
+  let raw = text;
+  // If it looks like a comma-separated list (more commas than newlines), split by comma
+  const commaCount = (text.match(/,/g) || []).length;
+  const newlineCount = (text.match(/\n/g) || []).length;
+  if (commaCount > newlineCount) {
+    raw = text.split(',').join('\n');
+  }
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  const titles = [];
+  const skipPatterns = [
+    /^\d+\s*(eps?|episodes?)(\s|$)/i,
+    /^score\s*:/i,
+    /^genres?\s*:/i,
+    /^status\s*:/i,
+    /^(action|adventure|fantasy|drama|comedy|romance|thriller|horror|sci-fi|mecha|mystery|supernatural|sports|slice\s+of\s+life)([\s,]|$)/i,
+    /^episodes?\s*:\s*\d+/i,
+    /^\d{4}$/,
+    /^(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{4}/i,
+    /^[\d·•\|,\s]+$/,
+  ];
+  const titleCleaners = [
+    [/^\d+[\.\)]\s*/, ''],
+    [/^\d+\s*[-–]\s*/, ''],
+    [/\s*\(\d{4}\)$/, ''],
+    [/\s*·.*$/, ''],
+    [/\s*\|.*$/, ''],
+  ];
+  for (const line of lines) {
+    if (skipPatterns.some(p => p.test(line))) continue;
+    if (line.length < 3) continue;
+    if (line === line.toLowerCase() && line.length > 15) continue;
+    let title = line;
+    for (const [pattern, replacement] of titleCleaners) {
+      title = title.replace(pattern, replacement).trim();
+    }
+    if (title.length >= 3) titles.push(title);
+  }
+  return [...new Set(titles)];
+}
+
+function openImportModal(user) {
+  importUser = user;
+  const name = user.charAt(0).toUpperCase() + user.slice(1);
+  document.getElementById('copy-modal-title').textContent = 'Import to ' + name + "'s List";
+  document.getElementById('copy-textarea').value = '';
+  document.getElementById('import-preview').style.display = 'none';
+  document.getElementById('import-confirm-btn').style.display = 'none';
+  document.getElementById('import-preview-btn').style.display = '';
+  importTitles = [];
+  document.getElementById('copy-modal').classList.add('open');
+  setTimeout(() => document.getElementById('copy-textarea').focus(), 50);
+}
+
+function previewImport() {
+  const text = document.getElementById('copy-textarea').value;
+  if (!text.trim()) { showToast('Paste something first!'); return; }
+  const parsed = parseAnimeTitles(text);
+  if (!parsed.length) { showToast('No titles found — try a different format'); return; }
+
+  const existing = state[importUser].anime;
+  const toAdd = [];
+  const dupes = [];
+  for (const title of parsed) {
+    if (existing.some(e => isSimilar(e.title, title))) dupes.push(title);
+    else toAdd.push(title);
+  }
+  importTitles = toAdd;
+
+  // Build chips
+  const chips = document.getElementById('import-chips');
+  chips.innerHTML = toAdd.map((t,i) =>
+    `<div class="chip" id="ic-${i}">${escHtml(t)}<span class="chip-x" onclick="removeImportChip(${i})">✕</span></div>`
+  ).join('') + dupes.map(t =>
+    `<div class="chip dupe" title="Already in list">${escHtml(t)} ·already</div>`
+  ).join('');
+
+  const preview = document.getElementById('import-preview');
+  const previewText = document.getElementById('import-preview-text');
+  previewText.innerHTML = `<span style="color:var(--green)">${toAdd.length} new</span> titles will be added` +
+    (dupes.length ? ` · <span style="color:var(--gray)">${dupes.length} already in list</span>` : '') +
+    '. Click ✕ to remove any you don\'t want.';
+  preview.style.display = 'block';
+  document.getElementById('import-confirm-btn').style.display = toAdd.length ? '' : 'none';
+  document.getElementById('import-preview-btn').textContent = 'Re-scan';
+}
+
+function removeImportChip(i) {
+  importTitles.splice(i, 1);
+  // re-render chips
+  const chips = document.getElementById('import-chips');
+  const all = chips.querySelectorAll('.chip:not(.dupe)');
+  if (all[i]) all[i].remove();
+  const previewText = document.getElementById('import-preview-text');
+  previewText.innerHTML = `<span style="color:var(--green)">${importTitles.length} new</span> titles will be added. Click ✕ to remove any you don\'t want.`;
+  if (!importTitles.length) document.getElementById('import-confirm-btn').style.display = 'none';
+}
+
+function runImport() {
+  if (!importTitles.length) return;
+  const user = importUser;
+  let added = 0;
+  for (const title of importTitles) {
+    const id = makeId(title) + '_' + Date.now() + '_' + added;
+    state[user].anime.push({ id, title, status: 'To Watch', progress: '' });
+    added++;
+  }
+  save(user);
+  renderPage(user);
+  closeCopyModal();
+  showToast(`Added ${added} anime to the list ✓`, true);
+}
+
+function openCopyModal(user) { openImportModal(user); }
+function closeCopyModal() {
+  document.getElementById('copy-modal').classList.remove('open');
+}
+function copyToClipboard() {}
+
+document.getElementById('copy-modal').addEventListener('click', function(e){
+  if (e.target === this) closeCopyModal();
+});
+
+// ── Toast ────────────────────────────────────────────────
+function showToast(msg, green=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (green?' green':'');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>{ t.className='toast'; },2200);
+}
+
+// ── Render ───────────────────────────────────────────────
+function renderFilters(user){
+  const c = counts(user);
+  const tabs = ['All',...STATUSES];
+  document.getElementById(user+'-filters').innerHTML = tabs.map(f=>`
+    <button class="filter-btn${state[user].filter===f?' active':''}" data-f="${f}"
+      onclick="setFilter('${user}','${f}')">${f} (${c[f]||0})</button>
+  `).join('');
+}
+
+function setFilter(user, f){ state[user].filter=f; renderPage(user); }
+
+function renderStats(user){
+  const c = counts(user);
+  document.getElementById(user+'-cnt-total').textContent = c.All;
+  document.getElementById(user+'-cnt-watching').textContent = c['Watching']||0;
+  document.getElementById(user+'-cnt-completed').textContent = c['Completed']||0;
+  document.getElementById(user+'-cnt-hold').textContent = c['On Hold']||0;
+  const pct = c.All ? Math.round((c['Completed']/c.All)*100) : 0;
+  document.getElementById(user+'-prog').style.width = pct+'%';
+}
+
+function renderPage(user){
+  renderFilters(user);
+  renderStats(user);
+  const list = filtered(user);
+  const el = document.getElementById('list-'+user);
+  if(!list.length){ el.innerHTML='<div class="empty">No results found</div>'; return; }
+  el.innerHTML = list.map((a,idx)=>{
+    const done = a.status==='Completed';
+    const isEditing = state[user].editingId===a.id;
+    const progressHtml = isEditing
+      ? `<div class="inline-edit">
+          <input type="text" id="ei-${a.id}" value="${escHtml(a.progress)}"
+            placeholder="Progress note…"
+            onkeydown="editKeydown(event,'${user}','${a.id}')"
+            style="border-color:rgba(232,93,47,0.5)"/>
+          <button class="icon-btn" style="color:var(--green);opacity:0.7" onclick="saveEdit('${user}','${a.id}')">✓</button>
+          <button class="icon-btn" style="color:var(--red);opacity:0.7" onclick="state['${user}'].editingId=null;renderPage('${user}')">✕</button>
+        </div>`
+      : a.progress
+        ? `<div class="row-progress" data-s="${a.status}" onclick="startEdit('${user}','${a.id}')" title="Click to edit">${escHtml(a.progress)}</div>`
+        : '';
+    return `<div class="row" style="animation-delay:${Math.min(idx*0.02,0.3)}s">
+      <button class="status-btn" data-s="${a.status}" onclick="cycleStatus('${user}','${a.id}')" title="Cycle status">${STATUS_ICON[a.status]}</button>
+      <div class="row-body">
+        <div class="row-title${done?' done':''}">${escHtml(a.title)}</div>
+        ${progressHtml}
+      </div>
+      <span class="badge" data-s="${a.status}">${a.status}</span>
+      <button class="icon-btn" onclick="startEdit('${user}','${a.id}')" title="Edit progress note">✏</button>
+      <button class="icon-btn" onclick="removeAnime('${user}','${a.id}')" title="Remove">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── Init ─────────────────────────────────────────────────
+load('ansh');
+load('shawn');
+updateHomeStats();
+</script>
+</body>
+</html>
